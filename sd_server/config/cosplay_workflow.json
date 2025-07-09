@@ -1,0 +1,57 @@
+{
+  "last_node_id": "10",
+  "nodes": [
+    {
+      "id": "1",
+      "type": "LoadImage",
+      "inputs": {
+        "image_path": "{input_image}"
+      }
+    },
+    {
+      "id": "2",
+      "type": "LoadBaseModel",
+      "inputs": {
+        "model_name": "{base_model}"
+      }
+    },
+    {
+      "id": "3",
+      "type": "LoadLoRA",
+      "inputs": {
+        "model": "2.output",
+        "lora_name": "{lora_model}",
+        "strength": 0.8
+      }
+    },
+    {
+      "id": "4",
+      "type": "ApplyControlNet",
+      "inputs": {
+        "image": "1.output",
+        "model": "3.output",
+        "controlnet_type": "openpose"
+      }
+    },
+    {
+      "id": "5",
+      "type": "TextToImage",
+      "inputs": {
+        "prompt": "cosplay as {style}, high quality, intricate details",
+        "negative_prompt": "blurry, lowres, bad anatomy",
+        "model": "4.output",
+        "width": 768,
+        "height": 768,
+        "steps": 25
+      }
+    },
+    {
+      "id": "6",
+      "type": "SaveImage",
+      "inputs": {
+        "images": "5.output",
+        "output_dir": "/app/outputs"
+      }
+    }
+  ]
+}
