@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: docker/bot/Dockerfile
+    env_file: .env
+    volumes:
+      - ./bot:/app/bot
+      - ./data:/app/data
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./docker/nginx
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/ton-connect-manifest.json:/var/www/ton-connect/ton-connect-manifest.json
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    command: certonly --standalone --non-interactive --agree-tos -m ${SSL_EMAIL} -d ${DOMAIN} --keep-until-expiring
+    depends_on:
+      - nginx
+
+volumes:
+  redis-data:
+  certbot-etc:
+  certbot-var:

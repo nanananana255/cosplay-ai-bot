@@ -1,23 +1,20 @@
 from aiogram import types
-from aiogram.dispatcher import Dispatcher
-from database import get_user_stats, get_generation_logs
+from aiogram.dispatcher import FSMContext
+from bot.services.database import get_all_users, get_all_generations
+from bot import dp, Config
 
-def register_admin_handlers(dp: Dispatcher):
-    @dp.message_handler(commands=['stats'], is_admin=True)
-    async def admin_stats(message: types.Message):
-        stats = get_user_stats()
-        await message.answer(
-            f"📊 Статистика:\n\n"
-            f"👥 Пользователей: {stats['total_users']}\n"
-            f"🔄 Генераций: {stats['total_generations']}\n"
-            f"💰 Доход: {stats['total_income']} TON"
-        )
-    
-    @dp.message_handler(commands=['logs'], is_admin=True)
-    async def admin_logs(message: types.Message):
-        logs = get_generation_logs(limit=10)
-        log_text = "\n".join(
-            f"{log['date']} - {log['user_id']} - {log['style']} - {log['status']}"
-            for log in logs
-        )
-        await message.answer(f"📝 Последние генерации:\n\n{log_text}")
+@dp.message_handler(commands=['admin'], user_id=Config.ADMIN_IDS)
+async def admin_panel(message: types.Message):
+    await message.answer(
+        "👨‍💻 Панель администратора:\n"
+        "/users - Список пользователей\n"
+        "/stats - Статистика генераций"
+    )
+
+@dp.message_handler(commands=['users'], user_id=Config.ADMIN_IDS)
+async def show_users(message: types.Message):
+    users = get_all_users()
+    await message.answer(f"👥 Всего пользователей: {len(users)}\n\n" + "\n".join(
+        f"{user.id}: {user.first_name} ({user.generations_count} генераций)"
+        for user in users
+    ))

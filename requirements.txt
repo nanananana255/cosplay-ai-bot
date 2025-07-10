@@ -1,0 +1,7 @@
+aiogram==2.25.1
+Pillow==9.5.0
+requests==2.31.0
+python-dotenv==1.0.0
+fastapi==0.95.2
+uvicorn==0.22.0
+sqlalchemy==2.0.15
